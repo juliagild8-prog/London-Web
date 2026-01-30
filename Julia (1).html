@@ -1,0 +1,758 @@
+<!--
+  index.html — London Guide (Single-file, vanilla HTML/CSS/JS)
+  -----------------------------------------------------------
+  What this does:
+  - Left column: neighborhoods (click to select)
+  - Middle column: curated category buttons (updates based on neighborhood)
+  - Right column: embedded Google Map iframe (updates on category click)
+  - “Show on map” updates the embed; “Open in Maps” opens a live Google Maps search
+
+  Notes:
+  - No hard-coded venue recommendations — everything links to live Google Maps searches.
+  - Easy to expand: add neighborhoods or categories in the DATA section in JS.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>London Guide</title>
+
+  <style>
+    /* =========================
+       THEME (CSS Variables)
+       ========================= */
+    :root {
+      --bg: #f7f9ff;
+      --bg-2: #ffffff;
+      --card: rgba(255, 255, 255, 0.75);
+      --card-solid: #ffffff;
+      --border: rgba(15, 23, 42, 0.10);
+      --shadow: 0 18px 45px rgba(2, 6, 23, 0.08);
+
+      --text: #0f172a;
+      --muted: rgba(15, 23, 42, 0.68);
+      --muted-2: rgba(15, 23, 42, 0.52);
+
+      --accent: #2563eb;     /* Primary */
+      --accent-2: #7c3aed;   /* Secondary */
+      --good: #16a34a;
+
+      --radius: 16px;
+      --radius-sm: 12px;
+
+      --gap: 16px;
+      --pad: 18px;
+
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    /* =========================
+       BASE
+       ========================= */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 800px at 20% 10%, rgba(37, 99, 235, 0.10), transparent 55%),
+        radial-gradient(1100px 700px at 85% 25%, rgba(124, 58, 237, 0.10), transparent 55%),
+        radial-gradient(900px 700px at 40% 90%, rgba(34, 197, 94, 0.08), transparent 55%),
+        linear-gradient(180deg, var(--bg), #fdfdff 45%, #ffffff);
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 18px 30px;
+    }
+
+    /* =========================
+       HEADER
+       ========================= */
+    header {
+      display: flex;
+      gap: 14px;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .title-wrap h1 {
+      margin: 0;
+      font-size: clamp(26px, 3vw, 34px);
+      letter-spacing: -0.02em;
+    }
+
+    .title-wrap p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+      max-width: 70ch;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.65);
+      border-radius: 999px;
+      box-shadow: 0 10px 30px rgba(2, 6, 23, 0.06);
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+    }
+
+    /* =========================
+       LAYOUT (3 columns)
+       ========================= */
+    .grid {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr 1.6fr;
+      gap: var(--gap);
+      align-items: stretch;
+      min-height: 640px;
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel header.panel-header {
+      padding: 14px var(--pad);
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    .panel header.panel-header h2 {
+      font-size: 14px;
+      margin: 0;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .panel-body {
+      padding: var(--pad);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* =========================
+       NEIGHBORHOODS (Left)
+       ========================= */
+    .neighborhoods {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .nb-btn {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.72);
+      border-radius: var(--radius-sm);
+      padding: 12px 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    .nb-btn:hover { transform: translateY(-1px); }
+    .nb-btn:focus { outline: 2px solid rgba(37, 99, 235, 0.35); outline-offset: 2px; }
+
+    .nb-btn.active {
+      border-color: rgba(37, 99, 235, 0.45);
+      box-shadow: 0 14px 35px rgba(37, 99, 235, 0.14);
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.09), rgba(255,255,255,0.78));
+    }
+
+    .nb-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .nb-name {
+      font-weight: 650;
+      letter-spacing: -0.01em;
+    }
+
+    .nb-tag {
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.65);
+      padding: 6px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .nb-desc {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--muted-2);
+      line-height: 1.35;
+    }
+
+    /* =========================
+       CATEGORIES (Middle)
+       ========================= */
+    .subhead {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      margin-top: -2px;
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .cat-btn {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.72);
+      border-radius: 14px;
+      padding: 12px 12px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+      min-height: 52px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+    .cat-btn:hover { transform: translateY(-1px); }
+    .cat-btn:focus { outline: 2px solid rgba(124, 58, 237, 0.30); outline-offset: 2px; }
+
+    .cat-btn.active {
+      border-color: rgba(124, 58, 237, 0.45);
+      box-shadow: 0 14px 35px rgba(124, 58, 237, 0.13);
+      background: linear-gradient(180deg, rgba(124, 58, 237, 0.08), rgba(255,255,255,0.78));
+    }
+
+    .cat-name { font-weight: 650; font-size: 14px; }
+    .cat-hint { color: var(--muted-2); font-size: 12px; }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .action-btn {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.78);
+      border-radius: 999px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+    }
+    .action-btn:hover { transform: translateY(-1px); }
+    .action-btn.primary {
+      border-color: rgba(37, 99, 235, 0.35);
+      box-shadow: 0 16px 34px rgba(37, 99, 235, 0.14);
+    }
+    .action-btn.primary .mini-dot {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+
+    .mini-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: rgba(15,23,42,0.25);
+    }
+
+    /* =========================
+       MAP (Right)
+       ========================= */
+    .map-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .map-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.72);
+      border-radius: var(--radius-sm);
+    }
+    .map-meta .k {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .map-meta .v {
+      font-size: 14px;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+    }
+    .map-meta .q {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      border-radius: var(--radius);
+      box-shadow: 0 18px 45px rgba(2, 6, 23, 0.10);
+      background: var(--card-solid);
+      min-height: 420px;
+    }
+
+    /* =========================
+       FOOTER NOTE
+       ========================= */
+    .note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      padding: 12px 14px;
+      border: 1px dashed rgba(15,23,42,0.18);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.55);
+    }
+
+    /* =========================
+       RESPONSIVE
+       ========================= */
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; min-height: auto; }
+      iframe { min-height: 380px; }
+      header { flex-direction: column; align-items: flex-start; }
+      .chip { align-self: flex-start; }
+      .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 420px) {
+      .category-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <div class="title-wrap">
+        <h1>London Guide</h1>
+        <p>
+          Explore London by neighborhood, then tap a category to instantly search live on Google Maps —
+          no static lists, just curated discovery.
+        </p>
+      </div>
+      <div class="chip" title="Tip: pick a neighborhood, then pick a category">
+        <span class="dot" aria-hidden="true"></span>
+        Live Google Maps searches
+      </div>
+    </header>
+
+    <main class="grid" aria-label="London Guide layout">
+      <!-- LEFT: Neighborhoods -->
+      <section class="panel" aria-label="Neighborhoods">
+        <header class="panel-header">
+          <h2>Neighborhoods</h2>
+        </header>
+        <div class="panel-body">
+          <div class="neighborhoods" id="neighborhoodList" role="list">
+            <!-- JS will render neighborhood buttons here -->
+          </div>
+          <div class="note">
+            <strong>How it works:</strong> select a neighborhood (left), then choose what you’re in the mood for (middle).
+            The map updates to a live search query (right).
+          </div>
+        </div>
+      </section>
+
+      <!-- MIDDLE: Categories -->
+      <section class="panel" aria-label="Categories">
+        <header class="panel-header">
+          <h2>Discover</h2>
+        </header>
+        <div class="panel-body">
+          <div>
+            <div class="subhead" id="selectedNeighborhoodLabel">Select a neighborhood to see categories.</div>
+          </div>
+
+          <div class="category-grid" id="categoryGrid" aria-label="Category buttons">
+            <!-- JS will render category buttons here -->
+          </div>
+
+          <div class="actions" aria-label="Actions">
+            <button class="action-btn primary" id="showOnMapBtn" type="button" title="Update the embedded map">
+              <span class="mini-dot" aria-hidden="true"></span>
+              Show on map
+            </button>
+            <button class="action-btn" id="openInMapsBtn" type="button" title="Open Google Maps in a new tab">
+              <span class="mini-dot" aria-hidden="true"></span>
+              Open in Maps
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Map -->
+      <section class="panel" aria-label="Map">
+        <header class="panel-header">
+          <h2>Map</h2>
+        </header>
+        <div class="panel-body map-wrap">
+          <div class="map-meta" aria-live="polite">
+            <div class="k">Current selection</div>
+            <div class="v" id="currentSelectionTitle">—</div>
+            <div class="q" id="currentQueryText">Pick a neighborhood and category to load a live Google Maps search.</div>
+          </div>
+
+          <!--
+            Google Maps embed without API key:
+            Using https://www.google.com/maps?q=QUERY&output=embed
+            Works well for simple search queries.
+          -->
+          <iframe
+            id="mapFrame"
+            title="Google Map"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            src="https://www.google.com/maps?q=London&output=embed">
+          </iframe>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    /* =========================================================
+       DATA (Edit here to expand neighborhoods & categories)
+       ========================================================= */
+
+    // Base categories used as defaults (neighborhoods can override/extend this).
+    const BASE_CATEGORIES = [
+      { id: "lunch",      label: "Lunch",       hint: "Great midday bites",        query: "lunch" },
+      { id: "coffee",     label: "Coffee",      hint: "Cafés + espresso bars",     query: "coffee" },
+      { id: "brunch",     label: "Brunch",      hint: "Late morning favorites",    query: "brunch" },
+      { id: "pubs",       label: "Pubs",        hint: "Classic pints & vibes",     query: "pubs" },
+      { id: "museums",    label: "Museums",     hint: "Galleries & exhibits",      query: "museums" },
+      { id: "parks",      label: "Parks",       hint: "Green space escapes",       query: "parks" },
+      { id: "views",      label: "Views",       hint: "Lookouts & skyline spots",  query: "best views" },
+      { id: "hidden",     label: "Hidden Gems", hint: "Off-the-beaten-path",       query: "hidden gems" }
+    ];
+
+    // Neighborhoods (placeholders) — keep these simple & expandable.
+    const NEIGHBORHOODS = [
+      {
+        id: "soho",
+        name: "Soho",
+        tag: "Food + nightlife",
+        desc: "Buzzing streets with restaurants, bars, and late-night energy.",
+        // Optional: customize categories for this neighborhood (replace or extend BASE_CATEGORIES)
+        categories: [
+          ...BASE_CATEGORIES,
+          { id: "music", label: "Live Music", hint: "Small venues & gigs", query: "live music" }
+        ]
+      },
+      {
+        id: "shoreditch",
+        name: "Shoreditch",
+        tag: "Street art",
+        desc: "Trendy, creative, and packed with markets, coffee, and bars.",
+        categories: [
+          { id: "coffee", label: "Coffee", hint: "Specialty cafés", query: "specialty coffee" },
+          { id: "markets", label: "Markets", hint: "Vintage + food stalls", query: "market" },
+          { id: "bars", label: "Bars", hint: "Cocktails & speakeasies", query: "cocktail bar" },
+          { id: "streetart", label: "Street Art", hint: "Murals & walks", query: "street art" },
+          { id: "lunch", label: "Lunch", hint: "Quick + casual", query: "lunch" },
+          { id: "hidden", label: "Hidden Gems", hint: "Local favorites", query: "hidden gems" }
+        ]
+      },
+      {
+        id: "kensington",
+        name: "Kensington",
+        tag: "Museums",
+        desc: "Elegant streets, major museums, and classic London charm.",
+        categories: [
+          { id: "museums", label: "Museums", hint: "Iconic collections", query: "museums" },
+          { id: "tea", label: "Afternoon Tea", hint: "Classic tea spots", query: "afternoon tea" },
+          { id: "parks", label: "Parks", hint: "Stroll & unwind", query: "parks" },
+          { id: "lunch", label: "Lunch", hint: "Sit-down favorites", query: "lunch" },
+          { id: "views", label: "Views", hint: "Pretty streets & gardens", query: "scenic spots" }
+        ]
+      },
+      {
+        id: "nottinghill",
+        name: "Notting Hill",
+        tag: "Colorful",
+        desc: "Pastel houses, markets, and cozy cafés—picture-perfect wandering.",
+        categories: [
+          { id: "coffee", label: "Coffee", hint: "Charming cafés", query: "coffee" },
+          { id: "brunch", label: "Brunch", hint: "Neighborhood brunch", query: "brunch" },
+          { id: "markets", label: "Markets", hint: "Antiques + stalls", query: "Portobello Road Market" },
+          { id: "walk", label: "Walks", hint: "Scenic strolls", query: "walking route" },
+          { id: "hidden", label: "Hidden Gems", hint: "Local finds", query: "hidden gems" }
+        ]
+      },
+      {
+        id: "southbank",
+        name: "South Bank",
+        tag: "Riverside",
+        desc: "River walks, culture, and some of the best skyline moments.",
+        categories: [
+          { id: "views", label: "Views", hint: "River + skyline", query: "best views" },
+          { id: "museums", label: "Museums", hint: "Culture & exhibits", query: "museums" },
+          { id: "walk", label: "River Walk", hint: "Scenic route ideas", query: "river walk" },
+          { id: "lunch", label: "Lunch", hint: "Quick eats nearby", query: "lunch" },
+          { id: "theatre", label: "Theatre", hint: "Shows & venues", query: "theatre" }
+        ]
+      }
+    ];
+
+    /* =========================================================
+       STATE
+       ========================================================= */
+    const state = {
+      neighborhoodId: NEIGHBORHOODS[0].id, // default selection
+      categoryId: null,                   // set after rendering categories
+      // derived query string shown/used for map URLs
+      queryString: ""
+    };
+
+    /* =========================================================
+       DOM ELEMENTS
+       ========================================================= */
+    const neighborhoodListEl = document.getElementById("neighborhoodList");
+    const categoryGridEl = document.getElementById("categoryGrid");
+    const selectedNeighborhoodLabelEl = document.getElementById("selectedNeighborhoodLabel");
+    const currentSelectionTitleEl = document.getElementById("currentSelectionTitle");
+    const currentQueryTextEl = document.getElementById("currentQueryText");
+    const mapFrameEl = document.getElementById("mapFrame");
+    const showOnMapBtn = document.getElementById("showOnMapBtn");
+    const openInMapsBtn = document.getElementById("openInMapsBtn");
+
+    /* =========================================================
+       HELPERS
+       ========================================================= */
+
+    function getNeighborhoodById(id) {
+      return NEIGHBORHOODS.find(n => n.id === id);
+    }
+
+    function getCategoryById(neighborhood, catId) {
+      return (neighborhood.categories || BASE_CATEGORIES).find(c => c.id === catId);
+    }
+
+    // Build a live Google Maps search query. No hard-coded places:
+    // Example: "Soho London brunch" or "Shoreditch London street art"
+    function buildQuery(neighborhoodName, categoryQuery) {
+      const parts = [];
+      if (categoryQuery) parts.push(categoryQuery);
+      parts.push(neighborhoodName);
+      parts.push("London");
+      return parts.join(" ").trim();
+    }
+
+    // Embed URL that works without API key.
+    function mapsEmbedUrl(queryString) {
+      const q = encodeURIComponent(queryString);
+      return `https://www.google.com/maps?q=${q}&output=embed`;
+    }
+
+    // Open in full Google Maps with the official search endpoint.
+    function mapsOpenUrl(queryString) {
+      const q = encodeURIComponent(queryString);
+      return `https://www.google.com/maps/search/?api=1&query=${q}`;
+    }
+
+    function setActiveButton(container, selector, activeId) {
+      container.querySelectorAll(selector).forEach(btn => {
+        const isActive = btn.dataset.id === activeId;
+        btn.classList.toggle("active", isActive);
+        btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+    }
+
+    /* =========================================================
+       RENDERING
+       ========================================================= */
+
+    function renderNeighborhoods() {
+      neighborhoodListEl.innerHTML = "";
+
+      NEIGHBORHOODS.forEach(n => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "nb-btn";
+        btn.dataset.id = n.id;
+        btn.setAttribute("aria-pressed", "false");
+
+        btn.innerHTML = `
+          <div class="nb-top">
+            <div class="nb-name">${n.name}</div>
+            <div class="nb-tag">${n.tag}</div>
+          </div>
+          <div class="nb-desc">${n.desc}</div>
+        `;
+
+        btn.addEventListener("click", () => {
+          state.neighborhoodId = n.id;
+          // Reset category to first category in this neighborhood
+          const cats = (getNeighborhoodById(state.neighborhoodId).categories || BASE_CATEGORIES);
+          state.categoryId = cats[0]?.id || null;
+
+          updateAll({ updateMap: true });
+        });
+
+        neighborhoodListEl.appendChild(btn);
+      });
+
+      setActiveButton(neighborhoodListEl, ".nb-btn", state.neighborhoodId);
+    }
+
+    function renderCategories() {
+      const neighborhood = getNeighborhoodById(state.neighborhoodId);
+      const categories = neighborhood.categories || BASE_CATEGORIES;
+
+      categoryGridEl.innerHTML = "";
+
+      // If no category yet, default to first
+      if (!state.categoryId && categories.length) {
+        state.categoryId = categories[0].id;
+      }
+
+      categories.forEach(c => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "cat-btn";
+        btn.dataset.id = c.id;
+        btn.setAttribute("aria-pressed", "false");
+
+        btn.innerHTML = `
+          <div class="cat-name">${c.label}</div>
+          <div class="cat-hint">${c.hint || "Search in this area"}</div>
+        `;
+
+        btn.addEventListener("click", () => {
+          state.categoryId = c.id;
+          updateAll({ updateMap: true });
+        });
+
+        categoryGridEl.appendChild(btn);
+      });
+
+      setActiveButton(categoryGridEl, ".cat-btn", state.categoryId);
+
+      selectedNeighborhoodLabelEl.textContent =
+        `In ${neighborhood.name}: choose a category to explore on Google Maps.`;
+    }
+
+    function updateMapAndMeta({ updateMap }) {
+      const neighborhood = getNeighborhoodById(state.neighborhoodId);
+      const category = state.categoryId ? getCategoryById(neighborhood, state.categoryId) : null;
+
+      const categoryLabel = category?.label || "Explore";
+      const categoryQuery = category?.query || "";
+
+      state.queryString = buildQuery(neighborhood.name, categoryQuery);
+
+      currentSelectionTitleEl.textContent = `${neighborhood.name} • ${categoryLabel}`;
+      currentQueryTextEl.textContent = `Search query: “${state.queryString}”`;
+
+      if (updateMap) {
+        mapFrameEl.src = mapsEmbedUrl(state.queryString);
+      }
+    }
+
+    function updateAll({ updateMap }) {
+      // Update active styles
+      setActiveButton(neighborhoodListEl, ".nb-btn", state.neighborhoodId);
+
+      // Re-render categories because they can differ by neighborhood
+      renderCategories();
+
+      // Apply active category style + update map
+      setActiveButton(categoryGridEl, ".cat-btn", state.categoryId);
+
+      updateMapAndMeta({ updateMap });
+    }
+
+    /* =========================================================
+       ACTION BUTTONS
+       ========================================================= */
+
+    showOnMapBtn.addEventListener("click", () => {
+      // Just refresh the embed with current query
+      updateMapAndMeta({ updateMap: true });
+    });
+
+    openInMapsBtn.addEventListener("click", () => {
+      // Open full Google Maps in a new tab for deeper browsing
+      if (!state.queryString) return;
+      window.open(mapsOpenUrl(state.queryString), "_blank", "noopener,noreferrer");
+    });
+
+    /* =========================================================
+       INIT
+       ========================================================= */
+    function init() {
+      renderNeighborhoods();
+
+      // Default category to first in default neighborhood
+      const defaultNeighborhood = getNeighborhoodById(state.neighborhoodId);
+      const defaultCategories = defaultNeighborhood.categories || BASE_CATEGORIES;
+      state.categoryId = defaultCategories[0]?.id || null;
+
+      updateAll({ updateMap: true });
+    }
+
+    init();
+  </script>
+</body>
+</html>
