@@ -477,15 +477,52 @@
 
     // Base categories used as defaults (neighborhoods can override/extend this).
     const BASE_CATEGORIES = [
-      { id: "lunch",      label: "Lunch",       hint: "Great midday bites",        query: "lunch" },
-      { id: "coffee",     label: "Coffee",      hint: "Cafés + espresso bars",     query: "coffee" },
-      { id: "brunch",     label: "Brunch",      hint: "Late morning favorites",    query: "brunch" },
-      { id: "pubs",       label: "Pubs",        hint: "Classic pints & vibes",     query: "pubs" },
-      { id: "museums",    label: "Museums",     hint: "Galleries & exhibits",      query: "museums" },
-      { id: "parks",      label: "Parks",       hint: "Green space escapes",       query: "parks" },
-      { id: "views",      label: "Views",       hint: "Lookouts & skyline spots",  query: "best views" },
-      { id: "hidden",     label: "Hidden Gems", hint: "Off-the-beaten-path",       query: "hidden gems" }
-    ];
+  // 🍽 Food & Drink
+  { id: "lunch", label: "Lunch", hint: "Great midday bites", query: "lunch" },
+  { id: "dinner", label: "Dinner", hint: "Sit-down favorites", query: "dinner" },
+  { id: "coffee", label: "Coffee", hint: "Cafés + espresso bars", query: "coffee" },
+  { id: "brunch", label: "Brunch", hint: "Late morning favorites", query: "brunch" },
+  { id: "bakery", label: "Bakeries", hint: "Pastries & sweets", query: "bakery" },
+  { id: "dessert", label: "Dessert", hint: "Sweet treats", query: "dessert" },
+  { id: "italian", label: "Italian", hint: "Pasta & pizza", query: "italian restaurant" },
+
+  // 🍸 Nightlife
+  { id: "pubs", label: "Pubs", hint: "Classic pints & vibes", query: "pubs" },
+  { id: "cocktails", label: "Cocktails", hint: "Craft cocktail bars", query: "cocktail bar" },
+  { id: "wine", label: "Wine Bars", hint: "Casual wine spots", query: "wine bar" },
+  { id: "rooftop", label: "Rooftop Bars", hint: "Drinks with a view", query: "rooftop bar" },
+
+  // 🏃‍♀️ Fitness & Wellness
+  { id: "pilates", label: "Pilates", hint: "Studios & reformer", query: "pilates studio" },
+  { id: "yoga", label: "Yoga", hint: "Flow & hot yoga", query: "yoga studio" },
+  { id: "barre", label: "Barre", hint: "Low-impact workouts", query: "barre class" },
+  { id: "spin", label: "Spin", hint: "Cycling classes", query: "spin class" },
+  { id: "gym", label: "Gyms", hint: "Fitness centers", query: "gym" },
+  { id: "running", label: "Running Routes", hint: "Popular running paths", query: "running route" },
+  { id: "spa", label: "Spa", hint: "Relax & unwind", query: "spa" },
+  { id: "sauna", label: "Sauna", hint: "Heat & recovery", query: "sauna" },
+
+  // 🛍 Shopping
+  { id: "vintage", label: "Vintage", hint: "Secondhand & thrift", query: "vintage shop" },
+  { id: "antiques", label: "Antiques", hint: "Antique stores", query: "antique store" },
+  { id: "boutiques", label: "Boutiques", hint: "Independent shops", query: "boutique shop" },
+  { id: "bookshops", label: "Bookshops", hint: "Local bookstores", query: "bookshop" },
+  { id: "markets", label: "Markets", hint: "Food & street markets", query: "market" },
+
+  // 🎭 Culture & Outdoors
+  { id: "museums", label: "Museums", hint: "Galleries & exhibits", query: "museums" },
+  { id: "art", label: "Art Galleries", hint: "Contemporary & classic", query: "art gallery" },
+  { id: "theatre", label: "Theatre", hint: "Shows & performances", query: "theatre" },
+  { id: "music", label: "Live Music", hint: "Venues & gigs", query: "live music" },
+  { id: "parks", label: "Parks", hint: "Green space escapes", query: "parks" },
+  { id: "walks", label: "Scenic Walks", hint: "Stroll-worthy routes", query: "scenic walk" },
+  { id: "views", label: "Views", hint: "Lookouts & skyline spots", query: "best views" },
+
+  // ✨ Discovery
+  { id: "hidden", label: "Hidden Gems", hint: "Off-the-beaten-path", query: "hidden gems" },
+  { id: "local", label: "Local Favorites", hint: "Loved by locals", query: "local favorite" }
+];
+
 
     // Neighborhoods (placeholders) — keep these simple & expandable.
     const NEIGHBORHOODS = [
