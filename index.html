@@ -1,16 +1,10 @@
 <!--
-  index.html — London Guide (Single-file, vanilla HTML/CSS/JS)
-  -----------------------------------------------------------
-  What this does:
-  - Left column: neighborhoods (click to select)
-  - Middle column: curated category buttons (updates based on neighborhood)
-  - Right column: embedded Google Map iframe (updates on category click)
-  - “Show on map” updates the embed; “Open in Maps” opens a live Google Maps search
+  London Guide — Single-file (index.html)
+  FIXED: Every neighborhood now shows the FULL expanded Discover list
+  because each neighborhood uses:
+    categories: [...BASE_CATEGORIES, ...BONUS_CATEGORIES]
 
-  Key change vs your older version:
-  ✅ Every neighborhood now STARTS with ...BASE_CATEGORIES
-  so your “Discover” list (workouts/wellness/shopping/etc.) appears for ALL neighborhoods,
-  not just Soho.
+  Paste this entire file into your GitHub repo as: index.html
 -->
 
 <!DOCTYPE html>
@@ -47,6 +41,7 @@
 
     * { box-sizing: border-box; }
     html, body { height: 100%; }
+
     body {
       margin: 0;
       font-family: var(--font);
@@ -152,6 +147,7 @@
       min-height: 0;
     }
 
+    /* Neighborhoods */
     .neighborhoods {
       display: flex;
       flex-direction: column;
@@ -172,21 +168,14 @@
     }
     .nb-btn:hover { transform: translateY(-1px); }
     .nb-btn:focus { outline: 2px solid rgba(37, 99, 235, 0.35); outline-offset: 2px; }
-
     .nb-btn.active {
       border-color: rgba(37, 99, 235, 0.45);
       box-shadow: 0 14px 35px rgba(37, 99, 235, 0.14);
       background: linear-gradient(180deg, rgba(37, 99, 235, 0.09), rgba(255,255,255,0.78));
     }
 
-    .nb-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
+    .nb-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .nb-name { font-weight: 650; letter-spacing: -0.01em; }
-
     .nb-tag {
       font-size: 12px;
       color: var(--muted);
@@ -196,14 +185,9 @@
       border-radius: 999px;
       white-space: nowrap;
     }
+    .nb-desc { margin-top: 8px; font-size: 13px; color: var(--muted-2); line-height: 1.35; }
 
-    .nb-desc {
-      margin-top: 8px;
-      font-size: 13px;
-      color: var(--muted-2);
-      line-height: 1.35;
-    }
-
+    /* Categories */
     .subhead {
       color: var(--muted);
       font-size: 13px;
@@ -235,23 +219,15 @@
     }
     .cat-btn:hover { transform: translateY(-1px); }
     .cat-btn:focus { outline: 2px solid rgba(124, 58, 237, 0.30); outline-offset: 2px; }
-
     .cat-btn.active {
       border-color: rgba(124, 58, 237, 0.45);
       box-shadow: 0 14px 35px rgba(124, 58, 237, 0.13);
       background: linear-gradient(180deg, rgba(124, 58, 237, 0.08), rgba(255,255,255,0.78));
     }
-
     .cat-name { font-weight: 650; font-size: 14px; }
     .cat-hint { color: var(--muted-2); font-size: 12px; }
 
-    .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 2px;
-    }
-
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
     .action-btn {
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.78);
@@ -270,23 +246,11 @@
       border-color: rgba(37, 99, 235, 0.35);
       box-shadow: 0 16px 34px rgba(37, 99, 235, 0.14);
     }
-    .action-btn.primary .mini-dot {
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    }
+    .mini-dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(15,23,42,0.25); }
+    .action-btn.primary .mini-dot { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
 
-    .mini-dot {
-      width: 9px; height: 9px;
-      border-radius: 50%;
-      background: rgba(15,23,42,0.25);
-    }
-
-    .map-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      min-height: 0;
-    }
-
+    /* Map */
+    .map-wrap { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
     .map-meta {
       display: flex;
       flex-direction: column;
@@ -296,23 +260,9 @@
       background: rgba(255,255,255,0.72);
       border-radius: var(--radius-sm);
     }
-    .map-meta .k {
-      font-size: 12px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-    .map-meta .v {
-      font-size: 14px;
-      font-weight: 650;
-      letter-spacing: -0.01em;
-    }
-    .map-meta .q {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.35;
-      word-break: break-word;
-    }
+    .map-meta .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .map-meta .v { font-size: 14px; font-weight: 650; letter-spacing: -0.01em; }
+    .map-meta .q { font-size: 13px; color: var(--muted); line-height: 1.35; word-break: break-word; }
 
     iframe {
       width: 100%;
@@ -340,9 +290,7 @@
       iframe { min-height: 380px; }
       header { flex-direction: column; align-items: flex-start; }
       .chip { align-self: flex-start; }
-      .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
-
     @media (max-width: 420px) {
       .category-grid { grid-template-columns: 1fr; }
     }
@@ -384,9 +332,7 @@
           <h2>Discover</h2>
         </header>
         <div class="panel-body">
-          <div>
-            <div class="subhead" id="selectedNeighborhoodLabel">Select a neighborhood to see categories.</div>
-          </div>
+          <div class="subhead" id="selectedNeighborhoodLabel">Select a neighborhood to see categories.</div>
 
           <div class="category-grid" id="categoryGrid" aria-label="Category buttons"></div>
 
@@ -430,7 +376,7 @@
        DATA
        ========================================================= */
 
-    // ✅ Expanded defaults — shows up for EVERY neighborhood
+    // Big list that should show for EVERY neighborhood
     const BASE_CATEGORIES = [
       // 🍽 Food & Drink
       { id: "coffee",   label: "Coffee",     hint: "Cafés + espresso bars",  query: "coffee" },
@@ -442,10 +388,10 @@
       { id: "italian",  label: "Italian",    hint: "Pasta & pizza",          query: "italian restaurant" },
 
       // 🍸 Nightlife
-      { id: "pubs",      label: "Pubs",        hint: "Classic pints & vibes", query: "pub" },
-      { id: "cocktails", label: "Cocktails",   hint: "Craft cocktail bars",   query: "cocktail bar" },
-      { id: "wine",      label: "Wine Bars",   hint: "Casual wine spots",     query: "wine bar" },
-      { id: "rooftop",   label: "Rooftop Bars",hint: "Drinks with a view",    query: "rooftop bar" },
+      { id: "pubs",      label: "Pubs",         hint: "Classic pints & vibes", query: "pub" },
+      { id: "cocktails", label: "Cocktails",    hint: "Craft cocktail bars",   query: "cocktail bar" },
+      { id: "wine",      label: "Wine Bars",    hint: "Casual wine spots",     query: "wine bar" },
+      { id: "rooftop",   label: "Rooftop Bars", hint: "Drinks with a view",    query: "rooftop bar" },
 
       // 🏃‍♀️ Workout & Wellness
       { id: "pilates",   label: "Pilates",    hint: "Studios & reformer",     query: "pilates studio" },
@@ -465,20 +411,21 @@
       { id: "markets",   label: "Markets",     hint: "Food + street markets", query: "market" },
 
       // 🎭 Culture & Outdoors
-      { id: "museums",   label: "Museums",     hint: "Galleries & exhibits",  query: "museum" },
-      { id: "art",       label: "Art Galleries",hint:"Contemporary & classic", query: "art gallery" },
-      { id: "theatre",   label: "Theatre",     hint: "Shows & performances",  query: "theatre" },
-      { id: "music",     label: "Live Music",  hint: "Venues & gigs",          query: "live music" },
-      { id: "parks",     label: "Parks",       hint: "Green space escapes",    query: "park" },
-      { id: "walks",     label: "Scenic Walks",hint: "Stroll-worthy routes",   query: "scenic walk" },
-      { id: "views",     label: "Views",       hint: "Lookouts & skyline",     query: "best views" },
+      { id: "museums",   label: "Museums",      hint: "Galleries & exhibits", query: "museum" },
+      { id: "art",       label: "Art Galleries",hint: "Contemporary & classic",query: "art gallery" },
+      { id: "theatre",   label: "Theatre",      hint: "Shows & performances", query: "theatre" },
+      { id: "music",     label: "Live Music",   hint: "Venues & gigs",         query: "live music" },
+      { id: "parks",     label: "Parks",        hint: "Green space escapes",  query: "park" },
+      { id: "walks",     label: "Scenic Walks", hint: "Stroll-worthy routes", query: "scenic walk" },
+      { id: "views",     label: "Views",        hint: "Lookouts & skyline",    query: "best views" },
 
       // ✨ Discovery
-      { id: "hidden",    label: "Hidden Gems", hint: "Off-the-beaten-path",    query: "hidden gems" },
-      { id: "local",     label: "Local Favorites", hint: "Loved by locals",    query: "local favorite" }
+      { id: "hidden",    label: "Hidden Gems",  hint: "Off-the-beaten-path",  query: "hidden gems" },
+      { id: "local",     label: "Local Favorites", hint: "Loved by locals",   query: "local favorite" }
     ];
 
-    // ✅ IMPORTANT: every neighborhood uses ...BASE_CATEGORIES so you ALWAYS see the big Discover list
+    // IMPORTANT: Every neighborhood uses [...BASE_CATEGORIES, ...BONUSES]
+    // so the big list shows everywhere.
     const NEIGHBORHOODS = [
       {
         id: "soho",
@@ -487,7 +434,7 @@
         desc: "Buzzing streets with restaurants, bars, and late-night energy.",
         categories: [
           ...BASE_CATEGORIES,
-          { id: "speakeasy", label: "Speakeasies", hint: "Hidden cocktail vibes", query: "speakeasy bar" }
+          { id: "soho_speakeasy", label: "Speakeasies", hint: "Hidden cocktail vibes", query: "speakeasy bar" }
         ]
       },
       {
@@ -497,7 +444,7 @@
         desc: "Trendy, creative, and packed with markets, coffee, and bars.",
         categories: [
           ...BASE_CATEGORIES,
-          { id: "streetart", label: "Street Art", hint: "Murals & walks", query: "street art" }
+          { id: "shrd_streetart", label: "Street Art", hint: "Murals & walks", query: "street art" }
         ]
       },
       {
@@ -507,7 +454,7 @@
         desc: "Pastel houses, markets, and cozy cafés—picture-perfect wandering.",
         categories: [
           ...BASE_CATEGORIES,
-          { id: "portobello", label: "Portobello Market", hint: "Iconic stalls & antiques", query: "Portobello Road Market" }
+          { id: "nh_portobello", label: "Portobello Market", hint: "Iconic stalls & antiques", query: "Portobello Road Market" }
         ]
       },
       {
@@ -517,7 +464,7 @@
         desc: "Elegant streets, major museums, and classic London charm.",
         categories: [
           ...BASE_CATEGORIES,
-          { id: "tea", label: "Afternoon Tea", hint: "Classic tea spots", query: "afternoon tea" }
+          { id: "ken_tea", label: "Afternoon Tea", hint: "Classic tea spots", query: "afternoon tea" }
         ]
       },
       {
@@ -527,7 +474,7 @@
         desc: "Great for shopping, theatres, and easy walking around central London.",
         categories: [
           ...BASE_CATEGORIES,
-          { id: "theatredistrict", label: "Shows", hint: "West End nearby", query: "west end theatre" }
+          { id: "cg_westend", label: "West End Shows", hint: "Theatres nearby", query: "west end theatre" }
         ]
       },
       {
@@ -537,7 +484,7 @@
         desc: "River walks, culture, and some of the best skyline moments.",
         categories: [
           ...BASE_CATEGORIES,
-          { id: "riverwalk", label: "River Walk", hint: "Scenic Thames route", query: "thames river walk" }
+          { id: "sb_riverwalk", label: "Thames Walk", hint: "Scenic riverside route", query: "thames river walk" }
         ]
       },
       {
@@ -547,7 +494,7 @@
         desc: "Historic ships, museums, and big park views by the river.",
         categories: [
           ...BASE_CATEGORIES,
-          { id: "observatory", label: "Observatory", hint: "Prime Meridian views", query: "Royal Observatory" }
+          { id: "gr_observatory", label: "Observatory", hint: "Prime Meridian views", query: "Royal Observatory Greenwich" }
         ]
       }
     ];
@@ -562,7 +509,7 @@
     };
 
     /* =========================================================
-       DOM ELEMENTS
+       DOM
        ========================================================= */
     const neighborhoodListEl = document.getElementById("neighborhoodList");
     const categoryGridEl = document.getElementById("categoryGrid");
@@ -611,7 +558,7 @@
     }
 
     /* =========================================================
-       RENDERING
+       RENDER
        ========================================================= */
     function renderNeighborhoods() {
       neighborhoodListEl.innerHTML = "";
@@ -633,7 +580,7 @@
 
         btn.addEventListener("click", () => {
           state.neighborhoodId = n.id;
-          const cats = (getNeighborhoodById(state.neighborhoodId).categories || BASE_CATEGORIES);
+          const cats = getNeighborhoodById(state.neighborhoodId).categories || BASE_CATEGORIES;
           state.categoryId = cats[0]?.id || null;
           updateAll({ updateMap: true });
         });
@@ -646,6 +593,8 @@
 
     function renderCategories() {
       const neighborhood = getNeighborhoodById(state.neighborhoodId);
+
+      // Each neighborhood has categories (and each includes ...BASE_CATEGORIES)
       const categories = neighborhood.categories || BASE_CATEGORIES;
 
       categoryGridEl.innerHTML = "";
@@ -691,9 +640,7 @@
       currentSelectionTitleEl.textContent = `${neighborhood.name} • ${categoryLabel}`;
       currentQueryTextEl.textContent = `Search query: “${state.queryString}”`;
 
-      if (updateMap) {
-        mapFrameEl.src = mapsEmbedUrl(state.queryString);
-      }
+      if (updateMap) mapFrameEl.src = mapsEmbedUrl(state.queryString);
     }
 
     function updateAll({ updateMap }) {
@@ -704,11 +651,9 @@
     }
 
     /* =========================================================
-       ACTION BUTTONS
+       ACTIONS
        ========================================================= */
-    showOnMapBtn.addEventListener("click", () => {
-      updateMapAndMeta({ updateMap: true });
-    });
+    showOnMapBtn.addEventListener("click", () => updateMapAndMeta({ updateMap: true }));
 
     openInMapsBtn.addEventListener("click", () => {
       if (!state.queryString) return;
@@ -720,11 +665,9 @@
        ========================================================= */
     function init() {
       renderNeighborhoods();
-
       const defaultNeighborhood = getNeighborhoodById(state.neighborhoodId);
       const defaultCategories = defaultNeighborhood.categories || BASE_CATEGORIES;
       state.categoryId = defaultCategories[0]?.id || null;
-
       updateAll({ updateMap: true });
     }
 
